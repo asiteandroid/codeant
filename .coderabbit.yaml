@@ -1,66 +1,36 @@
-# coderabbit.yaml
-# CodeRabbit AI configuration for Flutter & Dart projects
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+early_access: false
 
-language: dart
-framework: flutter
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false               # disable fun formatting for serious code review
+  review_status: true
+  review_details: true      # enable detailed line comments
+  auto_review:
+    enabled: true
+    drafts: false
 
-review_scope:
-  diff_only: true             # Only analyze files changed in the PR
-  include:
-    - "**/*.dart"
-    - "**/*.yaml"            # Include pubspec.yaml and config files
-  exclude:
-    - "**/*.png"
-    - "**/*.jpg"
-    - "**/*.json"            # Unless required for config
-
-review_focus:
-  widget_tree: true           # Detect unnecessary rebuilds, widget misuse
-  state_management: true      # Check Bloc, Provider, Riverpod usage
-  ui_logic: true              # Validate UI/UX logic correctness
-  null_safety: true           # Identify potential runtime exceptions
-  async_await: true           # Check proper async handling
-  performance: true           # Optimize ListView/GridView, avoid rebuilds
-  code_quality: true          # Dart best practices (naming, readability)
-  redundancy: true            # Detect unused or redundant code
-  platform_specific: true     # iOS/Android behavior issues
-  deprecated_apis: true       # Flag Flutter/Dart deprecated methods
-  security: true              # Check API keys, secrets, and dependencies
-
-output_format:
-  type: structured
-  fields:
-    - file
-    - line
-    - issue
-    - severity
-    - suggestion
-
-severity_levels:
-  critical: 
-    - runtime error
-    - state management bug
-    - widget rebuild issue
-    - null safety violation
-    - security vulnerability
-  warning: 
-    - performance inefficiency
-    - potential UI/UX bug
-    - deprecated API usage
-  suggestion: 
-    - code readability
-    - minor refactor
-    - naming improvements
-    - redundant code removal
-
+# Include instructions for Dart/Flutter analysis
 instructions:
-  summary: true                 # Provide a summary of critical issues
-  actionable_comments: true     # Include line-specific suggestions
-  concise_explanation: true     # Explain issues clearly and briefly
-  recommend_best_practices: true # Suggest Flutter/Dart best practices
-  context_sensitive: true       # Take state management and widget tree context into account
+  prompt: |
+    This PR contains Dart/Flutter code. Please review thoroughly focusing on:
+      - Widget tree structure and rebuilds
+      - State management (Bloc, Provider, Riverpod)
+      - UI/UX logic correctness
+      - Null safety and runtime errors
+      - Async/await usage
+      - Performance optimization (ListView/GridView, unnecessary rebuilds)
+      - Dart best practices (naming, readability)
+      - Detect unused/redundant code
+      - Platform-specific issues (iOS/Android)
+  summary: true
+  actionable_comments: true
+  concise_explanation: true
+  recommend_best_practices: true
+  context_sensitive: true
 
-testing_integration:
-  include_test_files: true       # Include files ending with *_test.dart
-  analyze_test_coverage: true   # Report missing test coverage for changed code
-  check_async_tests: true       # Ensure Futures and async code in tests are correct
+chat:
+  auto_reply: true
