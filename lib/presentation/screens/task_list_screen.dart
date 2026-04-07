@@ -93,9 +93,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   void _confirmDelete(BuildContext context, String taskId) {
     final provider = context.read<TaskProvider>();
-    // BUG: Deletes immediately — the UNDO action below just reloads the already-deleted state
     provider.deleteTask(taskId);
-    print('Deleted task: $taskId'); // BUG: Debug print left in production code
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Task deleted'),
@@ -107,8 +105,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  /// DUPLICATION: This is a copy-paste of EmptyStateWidget with minor text change.
-  /// Should reuse EmptyStateWidget with a configurable message instead.
+  /// Builds the empty state for the completed-tasks tab.
   Widget _buildEmptyCompletedState() {
     final theme = Theme.of(context);
     return Center(
@@ -134,48 +131,6 @@ class _TaskListScreenState extends State<TaskListScreen> {
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withAlpha(150),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// DUPLICATION: Copy-pasted error snackbar logic — same pattern as _confirmDelete.
-  void _showErrorSnackbar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        action: SnackBarAction(
-          label: 'DISMISS',
-          onPressed: () {},
-        ),
-      ),
-    );
-  }
-
-  /// DUPLICATION: Nearly identical to ErrorStateWidget — same icon, padding, and column layout.
-  /// Should reuse ErrorStateWidget instead of inlining.
-  Widget _buildInlineError(String message, VoidCallback onRetry) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
             ),
           ],
         ),

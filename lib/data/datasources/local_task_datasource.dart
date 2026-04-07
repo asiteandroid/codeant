@@ -20,7 +20,6 @@ class LocalTaskDatasource {
   // ---------------------------------------------------------------------------
 
   Future<List<TaskModel>> getAll() async {
-    // Simulate network / disk latency
     await Future.delayed(const Duration(milliseconds: 400));
     final tasks = _store.values.toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -48,8 +47,7 @@ class LocalTaskDatasource {
   }
 
   Future<bool> delete(String id) async {
-    // BUG: Missing await — Future.delayed fires but isn't awaited
-    Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 200));
     return _store.remove(id) != null;
   }
 
@@ -98,4 +96,3 @@ class LocalTaskDatasource {
     }
   }
 }
-

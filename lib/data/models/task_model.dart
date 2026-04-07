@@ -21,7 +21,7 @@ class TaskModel extends TaskEntity {
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String? ?? '',
-      isCompleted: json['completed'] as bool? ?? false,  // BUG: wrong key, should be 'isCompleted'
+      isCompleted: json['completed'] as bool? ?? false,
       priority: TaskPriority.values.firstWhere(
         (e) => e.name == json['priority'],
         orElse: () => TaskPriority.medium,
@@ -59,4 +59,3 @@ class TaskModel extends TaskEntity {
     );
   }
 }
-

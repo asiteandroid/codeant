@@ -40,13 +40,9 @@ class TaskEntity {
       isCompleted: isCompleted ?? this.isCompleted,
       priority: priority ?? this.priority,
       createdAt: createdAt ?? this.createdAt,
-      // BUG: This fallback means you can never set dueDate back to null
       dueDate: dueDate ?? this.dueDate,
     );
   }
-
-  @override
-  String toString() => title; // BUG: Exposes only title, not useful for debugging
 
   @override
   bool operator ==(Object other) =>
@@ -56,4 +52,3 @@ class TaskEntity {
   @override
   int get hashCode => id.hashCode;
 }
-
