@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../domain/entities/task_entity.dart';
 
 /// Reusable card widget for displaying a single task in the list.
@@ -19,6 +20,25 @@ class TaskCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  /// DUPLICATION: Same date format string used in _DueDatePicker (task_form_screen.dart).
+  /// Should extract to a shared utility/extension.
+  String _formatDate(DateTime date) {
+    return DateFormat.yMMMd().format(date);
+  }
+
+  /// DUPLICATION: Same priority→color mapping as _getPriorityColor in task_form_screen.dart.
+  /// Should be a shared utility function.
+  Color _priorityColor(TaskPriority priority) {
+    switch (priority) {
+      case TaskPriority.high:
+        return Colors.red;
+      case TaskPriority.medium:
+        return Colors.orange;
+      case TaskPriority.low:
+        return Colors.green;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -26,10 +46,11 @@ class TaskCard extends StatelessWidget {
     return Dismissible(
       key: ValueKey(task.id),
       direction: DismissDirection.endToStart,
+      // BUG: No confirmDismiss — accidental swipes delete permanently
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        color: theme.colorScheme.error,
+        color: Colors.red, // BUG: Hardcoded color instead of theme.colorScheme.error
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (_) => onDelete(),
@@ -50,17 +71,30 @@ class TaskCard extends StatelessWidget {
                   : null,
             ),
           ),
-          subtitle: task.description.isNotEmpty
-              ? Text(
-                  task.description,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : null,
+          subtitle: _buildSubtitle(),
           trailing: _PriorityBadge(priority: task.priority),
           onTap: onTap,
         ),
       ),
+    );
+  }
+
+  /// DUPLICATION: Builds subtitle with inline date formatting.
+  /// The date format logic is copy-pasted from _DueDatePicker in task_form_screen.dart.
+  Widget? _buildSubtitle() {
+    final parts = <String>[];
+    if (task.description.isNotEmpty) {
+      parts.add(task.description);
+    }
+    if (task.dueDate != null) {
+      // DUPLICATION: Same DateFormat.yMMMd() call exists in task_form_screen.dart _DueDatePicker
+      parts.add('Due: ${DateFormat.yMMMd().format(task.dueDate!)}');
+    }
+    if (parts.isEmpty) return null;
+    return Text(
+      parts.join(' · '),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

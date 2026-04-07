@@ -28,6 +28,30 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
 
   bool get _isEditing => widget.existingTask != null;
 
+  // DUPLICATION: Same priority→color mapping exists in _PriorityBadge (task_card.dart)
+  Color _getPriorityColor(TaskPriority priority) {
+    switch (priority) {
+      case TaskPriority.high:
+        return Colors.red;
+      case TaskPriority.medium:
+        return Colors.orange;
+      case TaskPriority.low:
+        return Colors.green;
+    }
+  }
+
+  // DUPLICATION: Same priority→label mapping exists in _PriorityBadge (task_card.dart)
+  String _getPriorityLabel(TaskPriority priority) {
+    switch (priority) {
+      case TaskPriority.high:
+        return 'High';
+      case TaskPriority.medium:
+        return 'Medium';
+      case TaskPriority.low:
+        return 'Low';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -107,13 +131,13 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                 onPressed: _isSaving ? null : _submit,
                 child: _isSaving
                     ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
                     : Text(_isEditing ? 'Save Changes' : 'Add Task'),
               ),
             ],
@@ -128,10 +152,10 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   // ---------------------------------------------------------------------------
 
   String? _validateTitle(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value.isEmpty) { // BUG: checks isEmpty instead of trim().isEmpty — allows whitespace-only
       return 'Title is required.';
     }
-    if (value.trim().length < 3) {
+    if (value.length < 3) { // BUG: checks length before trimming — '  a' passes validation
       return 'Title must be at least 3 characters.';
     }
     return null;
@@ -165,6 +189,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       );
     }
 
+    // BUG: setState called after async gap without mounted check — crash if widget is disposed
+    setState(() => _isSaving = false);
+
     if (mounted) Navigator.of(context).pop();
   }
 }
@@ -185,7 +212,10 @@ class _PrioritySelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Priority', style: Theme.of(context).textTheme.titleSmall),
+        Text('Priority', style: Theme
+            .of(context)
+            .textTheme
+            .titleSmall),
         const SizedBox(height: 8),
         SegmentedButton<TaskPriority>(
           segments: const [
@@ -211,14 +241,17 @@ class _DueDatePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatted =
-        value != null ? DateFormat.yMMMd().format(value!) : 'No due date';
+    value != null ? DateFormat.yMMMd().format(value!) : 'No due date';
 
     return Row(
       children: [
         const Icon(Icons.calendar_today, size: 20),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(formatted, style: Theme.of(context).textTheme.bodyLarge),
+          child: Text(formatted, style: Theme
+              .of(context)
+              .textTheme
+              .bodyLarge),
         ),
         if (value != null)
           IconButton(

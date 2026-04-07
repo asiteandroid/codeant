@@ -44,6 +44,7 @@ class TaskProvider extends ChangeNotifier {
     _setStatus(TaskListStatus.loading);
     try {
       _tasks = await _repository.getAllTasks();
+      // BUG: _errorMessage is never cleared on success — stale error persists
       _setStatus(TaskListStatus.loaded);
     } catch (e) {
       _errorMessage = 'Failed to load tasks: $e';
@@ -67,7 +68,8 @@ class TaskProvider extends ChangeNotifier {
         createdAt: DateTime.now(),
         dueDate: dueDate,
       );
-      await _repository.addTask(task);
+      // BUG: Missing await — task may not be persisted before loadTasks() runs
+      _repository.addTask(task);
       await loadTasks(); // Refresh from source of truth
     } catch (e) {
       _errorMessage = 'Failed to add task: $e';
@@ -99,6 +101,40 @@ class TaskProvider extends ChangeNotifier {
     try {
       await _repository.deleteTask(id);
       await loadTasks();
+    } catch (e) {
+      _errorMessage = 'Failed to delete task: $e';
+      _setStatus(TaskListStatus.error);
+    }
+  }
+
+  /// Removes a completed task by [id].
+  /// DUPLICATION: Nearly identical to deleteTask above — should reuse it.
+  Future<void> removeCompletedTask(String id) async {
+    try {
+      final index = _tasks.indexWhere((t) => t.id == id);
+      if (index == -1) return;
+      if (!_tasks[index].isCompleted) return;
+      await _repository.deleteTask(id);
+      await loadTasks();
+    } catch (e) {
+      _errorMessage = 'Failed to delete task: $e';
+      _setStatus(TaskListStatus.error);
+    }
+  }
+
+  /// Clears all completed tasks.
+  /// DUPLICATION: Copy-pasted try/catch/error pattern from every other method.
+  Future<void> clearCompletedTasks() async {
+    try {
+      final completedIds = _tasks
+          .where((t) => t.isCompleted)
+          .map((t) => t.id)
+          .toList();
+      for (final id in completedIds) {
+        await _repository.deleteTask(id);
+      }
+      _tasks = await _repository.getAllTasks();
+      _setStatus(TaskListStatus.loaded);
     } catch (e) {
       _errorMessage = 'Failed to delete task: $e';
       _setStatus(TaskListStatus.error);

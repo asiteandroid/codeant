@@ -48,7 +48,8 @@ class LocalTaskDatasource {
   }
 
   Future<bool> delete(String id) async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    // BUG: Missing await — Future.delayed fires but isn't awaited
+    Future.delayed(const Duration(milliseconds: 200));
     return _store.remove(id) != null;
   }
 
