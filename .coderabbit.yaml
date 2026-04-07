@@ -6,26 +6,38 @@ reviews:
   profile: "chill"
   request_changes_workflow: false
   high_level_summary: true
-  poem: false               # disable fun formatting for serious code review
+  poem: false                # keep professional
   review_status: true
-  review_details: true      # enable detailed line comments
+  review_details: true       # detailed line-by-line feedback
   auto_review:
     enabled: true
     drafts: false
 
-# Include instructions for Dart/Flutter analysis
+# Dart/Flutter instructions
 instructions:
   prompt: |
-    This PR contains Dart/Flutter code. Please review thoroughly focusing on:
-      - Widget tree structure and rebuilds
-      - State management (Bloc, Provider, Riverpod)
-      - UI/UX logic correctness
-      - Null safety and runtime errors
-      - Async/await usage
-      - Performance optimization (ListView/GridView, unnecessary rebuilds)
-      - Dart best practices (naming, readability)
-      - Detect unused/redundant code
-      - Platform-specific issues (iOS/Android)
+    This PR contains Dart and Flutter code. Review thoroughly and provide actionable comments. Focus on:
+    
+    1. **Widget tree structure** – detect unnecessary rebuilds, optimize widget usage.
+    2. **State management** – check Bloc, Provider, Riverpod patterns and correctness.
+    3. **UI/UX logic** – validate correctness of layouts, gestures, and navigation flow.
+    4. **Null safety** – ensure proper handling of nullable types, avoid runtime errors.
+    5. **Async/await and Futures** – check proper async handling, avoid blocking UI.
+    6. **Performance optimization** – identify expensive widget rebuilds, inefficient ListView/GridView usage.
+    7. **Dart best practices** – naming conventions, readability, maintainability, clear code structure.
+    8. **Redundant or unused code** – detect dead code and remove.
+    9. **Duplicate code** – identify repeated methods/widgets, suggest consolidation.
+    10. **Platform-specific issues** – consider Android/iOS differences, UI and behavior consistency.
+    11. **Deprecated APIs** – flag use of deprecated Flutter or Dart APIs.
+    12. **Security** – check for exposed API keys, secrets, or unsafe code patterns.
+    13. **Testing** – check if new code has appropriate unit/widget tests; suggest coverage improvements.
+    14. **Dependency issues** – highlight risky or outdated package usage.
+    15. **Error handling** – verify proper try/catch and error propagation.
+    16. **Accessibility** – check for semantic labels, contrast, and screen reader usability.
+    17. **Documentation & comments** – ensure complex methods and widgets are well-commented.
+    18. **Code style & formatting** – highlight inconsistent formatting if it affects readability.
+    19. **CI/CD readiness** – identify code patterns that could break builds or tests.
+
   summary: true
   actionable_comments: true
   concise_explanation: true
