@@ -1,41 +1,144 @@
+# Enables IDE autocompletion for this config file
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
-language: "en-US"
-early_access: false
 
-reviews:
-  profile: "chill"
-  request_changes_workflow: false
-  high_level_summary: true
-  poem: false
-  review_status: true
-  review_details: true
-  auto_review:
-    enabled: true
-    drafts: false
+# Language for CodeRabbit's review comments
+language: en
 
-  # 🔥 THIS is where Flutter/Dart intelligence goes
-  instructions: |
-    This PR contains Dart and Flutter code. Review thoroughly and provide actionable feedback.
-
-    Focus on:
-    - Widget tree structure and unnecessary rebuilds
-    - State management (Bloc, Provider, Riverpod)
-    - UI/UX logic correctness
-    - Null safety issues and runtime risks
-    - Async/await and Future handling
-    - Performance issues (ListView, rebuilds, heavy widgets)
-    - Duplicate and redundant code
-    - Dart best practices (naming, readability, maintainability)
-    - Platform-specific issues (Android/iOS)
-    - Deprecated Flutter/Dart APIs
-    - Security issues (API keys, secrets)
-    - Error handling and exception safety
-    - Test coverage (unit/widget tests)
-
-    Provide:
-    - Line-level comments
-    - Severity (Critical / Warning / Suggestion)
-    - Clear improvement suggestions
+# Enable experimental features
+early_access: true
 
 chat:
   auto_reply: true
+
+reviews:
+  auto_review:
+    enabled: true
+    ignore_title_keywords:
+      - "WIP"
+    drafts: false
+    base_branches:
+      - main
+      - develop
+
+  high_level_summary: true
+  sequence_diagrams: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  changed_files_summary: true
+  request_changes_workflow: false
+
+  pre_merge_checks:
+    description:
+      mode: warning
+    docstrings:
+      mode: off
+
+  # Exclude generated/build files
+  path_filters:
+    - "!**/build/**"
+    - "!**/.dart_tool/**"
+    - "!**/android/**"
+    - "!**/ios/**"
+    - "!**/linux/**"
+    - "!**/macos/**"
+    - "!**/windows/**"
+    - "!**/.idea/**"
+    - "!**/*.g.dart"
+    - "!**/*.freezed.dart"
+
+  # 🔥 Flutter & Dart specific instructions
+  path_instructions:
+
+    # Dart files (main Flutter code)
+    - path: "**/*.dart"
+      instructions: |
+        Flutter & Dart Best Practices:
+
+        UI / Widget Tree:
+        - Avoid unnecessary widget rebuilds
+        - Prefer const constructors where possible
+        - Keep widget trees clean and modular
+        - Avoid deeply nested widgets
+
+        State Management:
+        - Validate proper usage of Bloc / Provider / Riverpod
+        - Avoid calling setState excessively
+        - Ensure separation of UI and business logic
+
+        Performance:
+        - Use ListView.builder instead of ListView with large data
+        - Avoid expensive operations inside build()
+        - Use const widgets and keys properly
+        - Optimize rebuild scope
+
+        Async & Concurrency:
+        - Proper use of async/await
+        - Avoid blocking UI thread
+        - Handle FutureBuilder and StreamBuilder correctly
+
+        Null Safety:
+        - Avoid unnecessary null assertions (!)
+        - Handle nullable types safely
+
+        Code Quality:
+        - Follow Dart naming conventions
+        - Keep functions small and readable
+        - Avoid duplicate code (suggest reuse/widgets/services)
+
+        Architecture:
+        - Maintain separation of concerns
+        - Keep business logic out of UI layer
+
+        Error Handling:
+        - Use proper try/catch
+        - Avoid silent failures
+
+        Security:
+        - No hardcoded API keys or secrets
+        - Use secure storage when needed
+
+        Accessibility:
+        - Use Semantics widgets where needed
+        - Ensure proper labels for screen readers
+
+        Output:
+        - Provide severity (Critical / Warning / Suggestion)
+        - Give actionable suggestions with examples
+
+    # pubspec.yaml (dependencies)
+    - path: "pubspec.yaml"
+      instructions: |
+        Review dependencies for:
+        - Avoid unnecessary packages
+        - Check for outdated or risky dependencies
+        - Ensure version constraints are appropriate
+        - Verify assets and fonts are correctly configured
+        - No secrets or sensitive data included
+
+    # Test files
+    - path: "**/*_test.dart"
+      instructions: |
+        Review test files for:
+        - Proper unit and widget test coverage
+        - Use of flutter_test package correctly
+        - Mocking of dependencies where needed
+        - Async behavior tested correctly
+        - Edge cases are covered
+
+    # JSON configs (API, env, etc.)
+    - path: "**/*.json"
+      instructions: |
+        Review configuration files for:
+        - No exposed secrets or API keys
+        - Proper structure and validation
+        - Environment-specific configs handled safely
+
+    # Assets (images, fonts)
+    - path: "assets/**/*"
+      instructions: |
+        Review assets for:
+        - Optimized image sizes
+        - Proper resolution (@2x, @3x equivalents)
+        - Correct usage in pubspec.yaml
+        - Avoid unnecessary large files
