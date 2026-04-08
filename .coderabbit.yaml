@@ -1,82 +1,41 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 language: "en-US"
-framework: flutter
 early_access: false
 
-review_scope:
-  diff_only: true
-  include:
-    - "**/*.dart"
-    - "**/*.yaml"
-  exclude:
-    - "**/*.png"
-    - "**/*.jpg"
-    - "**/*.json"
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  review_details: true
+  auto_review:
+    enabled: true
+    drafts: false
 
-review_focus:
-  widget_tree: true
-  state_management: true
-  ui_logic: true
-  null_safety: true
-  async_await: true
-  performance: true
-  code_quality: true
-  redundancy: true
-  platform_specific: true
-  deprecated_apis: true
-  security: true
+  # 🔥 THIS is where Flutter/Dart intelligence goes
+  instructions: |
+    This PR contains Dart and Flutter code. Review thoroughly and provide actionable feedback.
 
-output_format:
-  type: structured
-  fields:
-    - file
-    - line
-    - issue
-    - severity
-    - suggestion
+    Focus on:
+    - Widget tree structure and unnecessary rebuilds
+    - State management (Bloc, Provider, Riverpod)
+    - UI/UX logic correctness
+    - Null safety issues and runtime risks
+    - Async/await and Future handling
+    - Performance issues (ListView, rebuilds, heavy widgets)
+    - Duplicate and redundant code
+    - Dart best practices (naming, readability, maintainability)
+    - Platform-specific issues (Android/iOS)
+    - Deprecated Flutter/Dart APIs
+    - Security issues (API keys, secrets)
+    - Error handling and exception safety
+    - Test coverage (unit/widget tests)
 
-severity_levels:
-  critical:
-    - runtime error
-    - state management bug
-    - widget rebuild issue
-    - null safety violation
-    - security vulnerability
-  warning:
-    - performance inefficiency
-    - potential UI/UX bug
-    - deprecated API usage
-  suggestion:
-    - code readability
-    - minor refactor
-    - naming improvements
-    - redundant code removal
+    Provide:
+    - Line-level comments
+    - Severity (Critical / Warning / Suggestion)
+    - Clear improvement suggestions
 
-instructions:
-  prompt: |
-    This PR contains Dart and Flutter code. Review thoroughly and provide actionable comments focusing on:
-      1. Widget tree structure and unnecessary rebuilds
-      2. State management (Bloc, Provider, Riverpod) correctness
-      3. UI/UX logic correctness
-      4. Null safety and async/await handling
-      5. Performance optimization (ListView/GridView, widget reuse)
-      6. Dart best practices (naming, readability, maintainability)
-      7. Detect unused, redundant, or duplicate code
-      8. Platform-specific issues (iOS/Android)
-      9. Deprecated Flutter/Dart APIs
-      10. Security (API keys, secrets, unsafe patterns)
-      11. Testing coverage (unit/widget tests)
-      12. Error handling and exception safety
-      13. Accessibility (semantic labels, screen reader usability)
-      14. Documentation & comments for complex logic
-      15. CI/CD readiness (code patterns that could break builds/tests)
-  summary: true
-  actionable_comments: true
-  concise_explanation: true
-  recommend_best_practices: true
-  context_sensitive: true
-
-testing_integration:
-  include_test_files: true
-  analyze_test_coverage: true
-  check_async_tests: true
+chat:
+  auto_reply: true
