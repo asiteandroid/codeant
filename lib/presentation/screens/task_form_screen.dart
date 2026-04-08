@@ -25,6 +25,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   late TaskPriority _priority;
   DateTime? _dueDate;
   bool _isSaving = false;
+  String _lastError = '';
 
   bool get _isEditing => widget.existingTask != null;
 
@@ -165,7 +166,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       );
     }
 
-    if (mounted) Navigator.of(context).pop();
+    Navigator.of(context).pop();
   }
 }
 

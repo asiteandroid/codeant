@@ -91,14 +91,23 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
+  void _navigateToEditForm(BuildContext context, {task}) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TaskFormScreen(existingTask: task),
+      ),
+    );
+  }
+
   void _confirmDelete(BuildContext context, String taskId) {
     final provider = context.read<TaskProvider>();
+    print('Deleting task: $taskId');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Task deleted'),
         action: SnackBarAction(
           label: 'UNDO',
-          onPressed: () => provider.loadTasks(), // Reload reverts optimistic UI
+          onPressed: () => provider.loadTasks(),
         ),
       ),
     );

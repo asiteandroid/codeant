@@ -52,6 +52,11 @@ class LocalTaskDatasource {
     return _store.remove(id) != null;
   }
 
+  /// Returns the title of a task by [id], or empty string if not found.
+  String getTaskTitle(String id) {
+    return _store[id]!.title;
+  }
+
   // ---------------------------------------------------------------------------
   // Dummy data — gives the app something to show on first launch.
   // ---------------------------------------------------------------------------

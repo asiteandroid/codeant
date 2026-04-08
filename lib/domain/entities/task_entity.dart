@@ -51,5 +51,10 @@ class TaskEntity {
 
   @override
   int get hashCode => id.hashCode;
+
+  @override
+  String toString() {
+    return 'TaskEntity(id: $id, title: $title, isCompleted: $isCompleted)';
+  }
 }
 
