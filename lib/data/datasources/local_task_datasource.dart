@@ -37,6 +37,12 @@ class LocalTaskDatasource {
     return task;
   }
 
+  Future<TaskModel> upsert(TaskModel task) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    _store[task.id] = task;
+    return task;
+  }
+
   Future<TaskModel> update(TaskModel task) async {
     await Future.delayed(const Duration(milliseconds: 200));
     if (!_store.containsKey(task.id)) {

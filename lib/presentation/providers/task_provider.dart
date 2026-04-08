@@ -27,7 +27,7 @@ class TaskProvider extends ChangeNotifier {
   // ---------------------------------------------------------------------------
 
   List<TaskEntity> _tasks = [];
-  List<TaskEntity> get tasks => List.unmodifiable(_tasks);
+  List<TaskEntity> get tasks => _tasks;
 
   TaskListStatus _status = TaskListStatus.initial;
   TaskListStatus get status => _status;

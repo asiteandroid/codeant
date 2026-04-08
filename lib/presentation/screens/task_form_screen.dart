@@ -168,8 +168,6 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
 
     setState(() => _isSaving = true);
 
-    final provider = context.read<TaskProvider>();
-
     if (_isEditing) {
       final updated = widget.existingTask!.copyWith(
         title: _titleController.text.trim(),
@@ -177,9 +175,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         priority: _priority,
         dueDate: _dueDate,
       );
-      await provider.updateTask(updated);
+      await context.read<TaskProvider>().updateTask(updated);
     } else {
-      await provider.addTask(
+      await context.read<TaskProvider>().addTask(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         priority: _priority,

@@ -34,6 +34,7 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dateFormatter = DateFormat('yMMMd');
 
     return Dismissible(
       key: ValueKey(task.id),
