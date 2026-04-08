@@ -83,7 +83,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   // Navigation helpers
   // ---------------------------------------------------------------------------
 
-  void _navigateToForm(BuildContext context, {task}) {
+  void _navigateToForm(BuildContext context, {TaskEntity? task}) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => TaskFormScreen(existingTask: task),
@@ -91,18 +91,37 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
-  void _confirmDelete(BuildContext context, String taskId) {
+  void _confirmDelete(BuildContext context, String taskId) async {
     final provider = context.read<TaskProvider>();
-    provider.deleteTask(taskId);
-    ScaffoldMessenger.of(context).showSnackBar(
+
+    // Find and capture the task before removing it
+    final taskToDelete = provider.tasks.firstWhere((task) => task.id == taskId);
+
+    // Optimistically remove from UI
+    provider.removeTaskLocally(taskId);
+
+    // Show SnackBar with undo action
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final snackBarController = scaffoldMessenger.showSnackBar(
       SnackBar(
         content: const Text('Task deleted'),
         action: SnackBarAction(
           label: 'UNDO',
-          onPressed: () => provider.loadTasks(),
+          onPressed: () {
+            // Restore the task to the local list
+            provider.restoreTask(taskToDelete);
+          },
         ),
       ),
     );
+
+    // Wait for the SnackBar to be dismissed
+    final reason = await snackBarController.closed;
+
+    // Only persist the deletion if the user did not undo
+    if (reason != SnackBarClosedReason.action) {
+      await provider.deleteTask(taskId);
+    }
   }
 
   /// Builds the empty state for the completed-tasks tab.
@@ -138,4 +157,3 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 }
-

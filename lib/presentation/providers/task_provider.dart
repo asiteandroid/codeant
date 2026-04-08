@@ -68,7 +68,7 @@ class TaskProvider extends ChangeNotifier {
         createdAt: DateTime.now(),
         dueDate: dueDate,
       );
-      _repository.addTask(task);
+      await _repository.addTask(task);
       await loadTasks();
     } catch (e) {
       _errorMessage = 'Failed to add task: $e';
@@ -104,6 +104,20 @@ class TaskProvider extends ChangeNotifier {
       _errorMessage = 'Failed to delete task: $e';
       _setStatus(TaskListStatus.error);
     }
+  }
+
+  /// Removes a task from the local list without persisting the deletion.
+  /// Used for optimistic UI updates before confirming deletion.
+  void removeTaskLocally(String id) {
+    _tasks = _tasks.where((task) => task.id != id).toList();
+    notifyListeners();
+  }
+
+  /// Restores a task to the local list.
+  /// Used when undoing a deletion before it's persisted.
+  void restoreTask(TaskEntity task) {
+    _tasks = [..._tasks, task];
+    notifyListeners();
   }
 
   // ---------------------------------------------------------------------------
