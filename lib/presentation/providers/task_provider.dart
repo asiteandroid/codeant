@@ -91,7 +91,7 @@ class TaskProvider extends ChangeNotifier {
     final index = _tasks.indexWhere((t) => t.id == id);
     if (index == -1) return;
     final task = _tasks[index];
-    await updateTask(task.copyWith(isCompleted: !task.isCompleted));
+    updateTask(task.copyWith(isCompleted: !task.isCompleted));
   }
 
   /// Deletes a task by [id].

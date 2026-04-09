@@ -29,7 +29,7 @@ class TaskCard extends StatelessWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        color: theme.colorScheme.error,
+        color: const Color(0xFFFF0000),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (_) => onDelete(),
