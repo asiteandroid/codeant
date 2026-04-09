@@ -10,49 +10,58 @@ on:
         description: "QA PR numbers (comma-separated, e.g., 12,13,14)"
         required: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Force Node 24 for actions
+
 jobs:
   compare:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Ensure GitHub CLI is installed
+        run: |
+          sudo apt update
+          sudo apt install -y gh
+          gh auth status || gh auth login --with-token < $GITHUB_TOKEN
 
       - name: Fetch diffs
         run: |
           MASTER_PR=${{ github.event.inputs.master_pr }}
           QA_PRS=${{ github.event.inputs.qa_prs }}
-          
+
           # Master PR diff
           gh pr diff $MASTER_PR --numstat > master.txt || echo "" > master.txt
-          
-          # QA PRs combined
+
+          # Combined QA PRs diff
           > qa.txt
           IFS=',' read -ra PRS <<< "$QA_PRS"
           for pr in "${PRS[@]}"; do
               gh pr diff $pr --numstat >> qa.txt || echo "" >> qa.txt
           done
 
-      - name: Generate report
+      - name: Generate Markdown report
         run: |
           echo "| File | MASTER | QA | Status |" > report.md
           echo "|------|--------|----|--------|" >> report.md
-          
-          # List all unique files
+
+          # Get all unique files
           awk '{print $3}' master.txt qa.txt | sort | uniq > files.txt
-          
+
           while read file; do
               m=$(grep -F "$file" master.txt || true)
               q=$(grep -F "$file" qa.txt || true)
-              
+
               if [ -n "$m" ]; then
                   m_stat="+$(echo $m | awk '{print $1}') -$(echo $m | awk '{print $2}')"
               else
                   m_stat="Missing"
               fi
-              
+
               if [ -n "$q" ]; then
                   q_add=$(grep -F "$file" qa.txt | awk '{sum+=$1} END {print sum}')
                   q_del=$(grep -F "$file" qa.txt | awk '{sum+=$2} END {print sum}')
@@ -60,7 +69,7 @@ jobs:
               else
                   q_stat="Missing"
               fi
-              
+
               if [[ "$m_stat" == "$q_stat" && "$m_stat" != "Missing" ]]; then
                   status="OK"
               elif [[ "$m_stat" == "Missing" ]]; then
@@ -70,11 +79,11 @@ jobs:
               else
                   status="DIFF_MISMATCH"
               fi
-              
+
               echo "| $file | $m_stat | $q_stat | $status |" >> report.md
           done < files.txt
 
-      - name: Upload report
+      - name: Upload Markdown report
         uses: actions/upload-artifact@v4
         with:
           name: pr-comparison-report
