@@ -14,7 +14,7 @@ jobs:
   compare:
     runs-on: ubuntu-latest
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # avoids Node 20 warning
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Forces Node.js 24 for actions
 
     steps:
       - name: Checkout repository
