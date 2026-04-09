@@ -1,0 +1,83 @@
+name: Manual PR Compare (MASTER vs QA PRs)
+
+on:
+  workflow_dispatch:
+    inputs:
+      master_pr:
+        description: "Master PR number"
+        required: true
+      qa_prs:
+        description: "QA PR numbers (comma-separated, e.g. 12,13,14)"
+        required: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh -y
+
+      - name: Authenticate GH CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Get MASTER PR diff
+        run: |
+          gh pr diff ${{ github.event.inputs.master_pr }} --numstat > master.txt
+
+      - name: Get QA PRs diff (combined)
+        run: |
+          > qa.txt
+          IFS=',' read -ra PRS <<< "${{ github.event.inputs.qa_prs }}"
+          for pr in "${PRS[@]}"; do
+            gh pr diff $pr --numstat >> qa.txt
+          done
+
+      - name: Generate report
+        run: |
+          echo "| File | MASTER | QA | Status |" > report.md
+          echo "|------|--------|----|--------|" >> report.md
+
+          awk '{print $3}' master.txt qa.txt | sort | uniq > files.txt
+
+          while read file; do
+            m=$(grep "$file" master.txt || true)
+            q=$(grep "$file" qa.txt || true)
+
+            if [ -n "$m" ]; then
+              m_stat="+$(echo $m | awk '{print $1}') -$(echo $m | awk '{print $2}')"
+            else
+              m_stat="Missing"
+            fi
+
+            if [ -n "$q" ]; then
+              q_add=$(grep "$file" qa.txt | awk '{sum+=$1} END {print sum}')
+              q_del=$(grep "$file" qa.txt | awk '{sum+=$2} END {print sum}')
+              q_stat="+${q_add:-0} -${q_del:-0}"
+            else
+              q_stat="Missing"
+            fi
+
+            if [[ "$m_stat" == "$q_stat" && "$m_stat" != "Missing" ]]; then
+              status="OK"
+            elif [[ "$m_stat" == "Missing" ]]; then
+              status="MISSING_IN_MASTER"
+            elif [[ "$q_stat" == "Missing" ]]; then
+              status="MISSING_IN_QA"
+            else
+              status="DIFF_MISMATCH"
+            fi
+
+            echo "| $file | $m_stat | $q_stat | $status |" >> report.md
+          done < files.txt
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-comparison-report
+          path: report.md
