@@ -1,33 +1,3 @@
-name: Manual PR Compare (MASTER vs QA PRs)
-
-on:
-  workflow_dispatch:
-    inputs:
-      master_pr:
-        description: "Master PR number"
-        required: true
-      qa_prs:
-        description: "QA PR numbers (comma-separated, e.g., 12,13,14)"
-        required: true
-
-jobs:
-  compare:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Install PyGithub
-        run: pip install PyGithub
-
       - name: Run PR comparison script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -81,9 +51,3 @@ with open("report.md", "w") as f:
 
         f.write(f"| {file} | {m_str} | {q_str} | {status} |\n")
 EOF
-
-      - name: Upload Markdown report
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr-comparison-report
-          path: report.md
