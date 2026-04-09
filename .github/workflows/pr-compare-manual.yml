@@ -1,53 +1,81 @@
-      - name: Run PR comparison script
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MASTER_PR: ${{ github.event.inputs.master_pr }}
-          QA_PRS: ${{ github.event.inputs.qa_prs }}
+name: Manual PR Compare
+
+on:
+  workflow_dispatch:
+    inputs:
+      master_pr:
+        description: "Master PR number"
+        required: true
+      qa_prs:
+        description: "QA PR numbers (comma-separated, e.g., 12,13,14)"
+        required: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch diffs
         run: |
-          python - <<EOF
-import os
-from github import Github
+          MASTER_PR=${{ github.event.inputs.master_pr }}
+          QA_PRS=${{ github.event.inputs.qa_prs }}
+          
+          # Master PR diff
+          gh pr diff $MASTER_PR --numstat > master.txt || echo "" > master.txt
+          
+          # QA PRs combined
+          > qa.txt
+          IFS=',' read -ra PRS <<< "$QA_PRS"
+          for pr in "${PRS[@]}"; do
+              gh pr diff $pr --numstat >> qa.txt || echo "" >> qa.txt
+          done
 
-g = Github(os.environ["GITHUB_TOKEN"])
-repo = g.get_repo(os.environ["GITHUB_REPOSITORY"])
+      - name: Generate report
+        run: |
+          echo "| File | MASTER | QA | Status |" > report.md
+          echo "|------|--------|----|--------|" >> report.md
+          
+          # List all unique files
+          awk '{print $3}' master.txt qa.txt | sort | uniq > files.txt
+          
+          while read file; do
+              m=$(grep -F "$file" master.txt || true)
+              q=$(grep -F "$file" qa.txt || true)
+              
+              if [ -n "$m" ]; then
+                  m_stat="+$(echo $m | awk '{print $1}') -$(echo $m | awk '{print $2}')"
+              else
+                  m_stat="Missing"
+              fi
+              
+              if [ -n "$q" ]; then
+                  q_add=$(grep -F "$file" qa.txt | awk '{sum+=$1} END {print sum}')
+                  q_del=$(grep -F "$file" qa.txt | awk '{sum+=$2} END {print sum}')
+                  q_stat="+${q_add:-0} -${q_del:-0}"
+              else
+                  q_stat="Missing"
+              fi
+              
+              if [[ "$m_stat" == "$q_stat" && "$m_stat" != "Missing" ]]; then
+                  status="OK"
+              elif [[ "$m_stat" == "Missing" ]]; then
+                  status="MISSING_IN_MASTER"
+              elif [[ "$q_stat" == "Missing" ]]; then
+                  status="MISSING_IN_QA"
+              else
+                  status="DIFF_MISMATCH"
+              fi
+              
+              echo "| $file | $m_stat | $q_stat | $status |" >> report.md
+          done < files.txt
 
-master_pr = repo.get_pull(int(os.environ["MASTER_PR"]))
-qa_prs = [repo.get_pull(int(pr.strip())) for pr in os.environ["QA_PRS"].split(",")]
-
-def collect_files(pr):
-    files = {}
-    for f in pr.get_files():
-        files[f.filename] = f.additions, f.deletions
-    return files
-
-master_files = collect_files(master_pr)
-qa_files = {}
-for pr in qa_prs:
-    for k, v in collect_files(pr).items():
-        if k in qa_files:
-            qa_files[k] = (qa_files[k][0]+v[0], qa_files[k][1]+v[1])
-        else:
-            qa_files[k] = v
-
-all_files = set(master_files.keys()) | set(qa_files.keys())
-with open("report.md", "w") as f:
-    f.write("| File | MASTER | QA | Status |\n")
-    f.write("|------|--------|----|--------|\n")
-    for file in sorted(all_files):
-        m = master_files.get(file, ("Missing","Missing"))
-        q = qa_files.get(file, ("Missing","Missing"))
-
-        m_str = f"+{m[0]} -{m[1]}" if m != ("Missing","Missing") else "Missing"
-        q_str = f"+{q[0]} -{q[1]}" if q != ("Missing","Missing") else "Missing"
-
-        if m_str == q_str and m_str != "Missing":
-            status = "OK"
-        elif m_str == "Missing":
-            status = "MISSING_IN_MASTER"
-        elif q_str == "Missing":
-            status = "MISSING_IN_QA"
-        else:
-            status = "DIFF_MISMATCH"
-
-        f.write(f"| {file} | {m_str} | {q_str} | {status} |\n")
-EOF
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-comparison-report
+          path: report.md
