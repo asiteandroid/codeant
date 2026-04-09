@@ -7,47 +7,50 @@ on:
         description: "Master PR number"
         required: true
       qa_prs:
-        description: "QA PR numbers (comma-separated, e.g. 12,13,14)"
+        description: "QA PR numbers (comma-separated, e.g., 12,13,14)"
         required: true
 
 jobs:
   compare:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # avoids Node 20 warning
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install GitHub CLI
-        run: sudo apt-get install gh -y
-
       - name: Authenticate GH CLI
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get MASTER PR diff
+      - name: Generate MASTER PR diff
         run: |
-          gh pr diff ${{ github.event.inputs.master_pr }} --numstat > master.txt
+          gh pr diff ${{ github.event.inputs.master_pr }} --numstat > master.txt || echo "" > master.txt
 
-      - name: Get QA PRs diff (combined)
+      - name: Generate QA PRs diff (combined)
         run: |
           > qa.txt
           IFS=',' read -ra PRS <<< "${{ github.event.inputs.qa_prs }}"
           for pr in "${PRS[@]}"; do
-            gh pr diff $pr --numstat >> qa.txt
+            gh pr diff $pr --numstat >> qa.txt || echo "" >> qa.txt
           done
 
-      - name: Generate report
+      - name: Generate Markdown report
         run: |
+          set -e
           echo "| File | MASTER | QA | Status |" > report.md
           echo "|------|--------|----|--------|" >> report.md
 
+          # Collect all unique files
           awk '{print $3}' master.txt qa.txt | sort | uniq > files.txt
 
           while read file; do
-            m=$(grep "$file" master.txt || true)
-            q=$(grep "$file" qa.txt || true)
+            m=$(grep -F "$file" master.txt || true)
+            q=$(grep -F "$file" qa.txt || true)
 
             if [ -n "$m" ]; then
               m_stat="+$(echo $m | awk '{print $1}') -$(echo $m | awk '{print $2}')"
@@ -56,13 +59,14 @@ jobs:
             fi
 
             if [ -n "$q" ]; then
-              q_add=$(grep "$file" qa.txt | awk '{sum+=$1} END {print sum}')
-              q_del=$(grep "$file" qa.txt | awk '{sum+=$2} END {print sum}')
+              q_add=$(grep -F "$file" qa.txt | awk '{sum+=$1} END {print sum}')
+              q_del=$(grep -F "$file" qa.txt | awk '{sum+=$2} END {print sum}')
               q_stat="+${q_add:-0} -${q_del:-0}"
             else
               q_stat="Missing"
             fi
 
+            # Determine status
             if [[ "$m_stat" == "$q_stat" && "$m_stat" != "Missing" ]]; then
               status="OK"
             elif [[ "$m_stat" == "Missing" ]]; then
@@ -76,7 +80,7 @@ jobs:
             echo "| $file | $m_stat | $q_stat | $status |" >> report.md
           done < files.txt
 
-      - name: Upload report
+      - name: Upload Markdown report
         uses: actions/upload-artifact@v4
         with:
           name: pr-comparison-report
