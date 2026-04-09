@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../domain/entities/task_entity.dart';
 
 /// Reusable card widget for displaying a single task in the list.
@@ -19,9 +20,21 @@ class TaskCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  Color _priorityColor(TaskPriority priority) {
+    switch (priority) {
+      case TaskPriority.high:
+        return Colors.red;
+      case TaskPriority.medium:
+        return Colors.orange;
+      case TaskPriority.low:
+        return Colors.green;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dateFormatter = DateFormat('yMMMd');
 
     return Dismissible(
       key: ValueKey(task.id),
@@ -50,17 +63,27 @@ class TaskCard extends StatelessWidget {
                   : null,
             ),
           ),
-          subtitle: task.description.isNotEmpty
-              ? Text(
-                  task.description,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : null,
+          subtitle: _buildSubtitle(),
           trailing: _PriorityBadge(priority: task.priority),
           onTap: onTap,
         ),
       ),
+    );
+  }
+
+  Widget? _buildSubtitle() {
+    final parts = <String>[];
+    if (task.description.isNotEmpty) {
+      parts.add(task.description);
+    }
+    if (task.dueDate != null) {
+      parts.add('Due: ${DateFormat.yMMMd().format(task.dueDate!)}');
+    }
+    if (parts.isEmpty) return null;
+    return Text(
+      parts.join(' · '),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }
@@ -96,4 +119,3 @@ class _PriorityBadge extends StatelessWidget {
     );
   }
 }
-

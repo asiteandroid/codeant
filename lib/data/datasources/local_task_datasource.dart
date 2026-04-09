@@ -20,7 +20,6 @@ class LocalTaskDatasource {
   // ---------------------------------------------------------------------------
 
   Future<List<TaskModel>> getAll() async {
-    // Simulate network / disk latency
     await Future.delayed(const Duration(milliseconds: 400));
     final tasks = _store.values.toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -33,6 +32,12 @@ class LocalTaskDatasource {
   }
 
   Future<TaskModel> add(TaskModel task) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    _store[task.id] = task;
+    return task;
+  }
+
+  Future<TaskModel> upsert(TaskModel task) async {
     await Future.delayed(const Duration(milliseconds: 200));
     _store[task.id] = task;
     return task;
@@ -97,4 +102,3 @@ class LocalTaskDatasource {
     }
   }
 }
-

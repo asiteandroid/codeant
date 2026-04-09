@@ -52,4 +52,3 @@ class TaskEntity {
   @override
   int get hashCode => id.hashCode;
 }
-

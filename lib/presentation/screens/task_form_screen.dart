@@ -28,6 +28,28 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
 
   bool get _isEditing => widget.existingTask != null;
 
+  Color _getPriorityColor(TaskPriority priority) {
+    switch (priority) {
+      case TaskPriority.high:
+        return Colors.red;
+      case TaskPriority.medium:
+        return Colors.orange;
+      case TaskPriority.low:
+        return Colors.green;
+    }
+  }
+
+  String _getPriorityLabel(TaskPriority priority) {
+    switch (priority) {
+      case TaskPriority.high:
+        return 'High';
+      case TaskPriority.medium:
+        return 'Medium';
+      case TaskPriority.low:
+        return 'Low';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -128,10 +150,10 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   // ---------------------------------------------------------------------------
 
   String? _validateTitle(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value.isEmpty) {
       return 'Title is required.';
     }
-    if (value.trim().length < 3) {
+    if (value.length < 3) {
       return 'Title must be at least 3 characters.';
     }
     return null;
@@ -146,8 +168,6 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
 
     setState(() => _isSaving = true);
 
-    final provider = context.read<TaskProvider>();
-
     if (_isEditing) {
       final updated = widget.existingTask!.copyWith(
         title: _titleController.text.trim(),
@@ -155,9 +175,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         priority: _priority,
         dueDate: _dueDate,
       );
-      await provider.updateTask(updated);
+      await context.read<TaskProvider>().updateTask(updated);
     } else {
-      await provider.addTask(
+      await context.read<TaskProvider>().addTask(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         priority: _priority,
@@ -242,4 +262,3 @@ class _DueDatePicker extends StatelessWidget {
     );
   }
 }
-

@@ -27,7 +27,7 @@ class TaskProvider extends ChangeNotifier {
   // ---------------------------------------------------------------------------
 
   List<TaskEntity> _tasks = [];
-  List<TaskEntity> get tasks => List.unmodifiable(_tasks);
+  List<TaskEntity> get tasks => _tasks;
 
   TaskListStatus _status = TaskListStatus.initial;
   TaskListStatus get status => _status;
@@ -44,6 +44,7 @@ class TaskProvider extends ChangeNotifier {
     _setStatus(TaskListStatus.loading);
     try {
       _tasks = await _repository.getAllTasks();
+      _errorMessage = null;
       _setStatus(TaskListStatus.loaded);
     } catch (e) {
       _errorMessage = 'Failed to load tasks: $e';
@@ -67,8 +68,8 @@ class TaskProvider extends ChangeNotifier {
         createdAt: DateTime.now(),
         dueDate: dueDate,
       );
-      await _repository.addTask(task);
-      await loadTasks(); // Refresh from source of truth
+      _repository.addTask(task);
+      await loadTasks();
     } catch (e) {
       _errorMessage = 'Failed to add task: $e';
       _setStatus(TaskListStatus.error);
@@ -114,4 +115,3 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-

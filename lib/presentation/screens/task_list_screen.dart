@@ -93,16 +93,49 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   void _confirmDelete(BuildContext context, String taskId) {
     final provider = context.read<TaskProvider>();
+    provider.deleteTask(taskId);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Task deleted'),
         action: SnackBarAction(
           label: 'UNDO',
-          onPressed: () => provider.loadTasks(), // Reload reverts optimistic UI
+          onPressed: () => provider.loadTasks(),
         ),
       ),
     );
-    provider.deleteTask(taskId);
+  }
+
+  /// Builds the empty state for the completed-tasks tab.
+  Widget _buildEmptyCompletedState() {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.task_alt,
+              size: 80,
+              color: theme.colorScheme.primary.withAlpha(100),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No completed tasks',
+              style: theme.textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Complete a task to see it here.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withAlpha(150),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
